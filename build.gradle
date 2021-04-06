@@ -18,6 +18,10 @@ allprojects {
     repositories {
         google()
         jcenter()
+        maven {
+            url 'https://navercorp.bintray.com/maps' // naver map
+        }
+        //네이버 지도 저장소
     }
 }
 
