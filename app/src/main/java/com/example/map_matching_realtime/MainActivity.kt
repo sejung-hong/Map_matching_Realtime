@@ -2,14 +2,10 @@ package com.example.map_matching_realtime
 
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.graphics.Color
 import android.location.Location
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.UiThread
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -61,6 +57,7 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
 
     @UiThread
     override fun onMapReady(naverMap: NaverMap){
+        /*
         val cameraPosition = CameraPosition(
             LatLng(37.5666102, 126.9783881),  // 위치 지정
             16.0 // 줌 레벨
@@ -71,6 +68,11 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(this) //gps 자동으로 받아오기
         setUpdateLocationListner() //내위치를 가져오는 코드
+        */
+
+        val dir = filesDir.absolutePath //파일절대경로
+        Mapmatching_engine(naverMap).engine(naverMap, dir)
+        //engine 부분 옮기기
     }
 
     //내 위치를 가져오는 코드
