@@ -7,14 +7,11 @@ public class Candidate {
     private Point point;
     private Link involvedLink;
     private double tp;
-    private double yh_tp;
     private double ep;
     private double tpep;
     private double ep_median;
     private double tp_median;
-    private double max_tp_median;
     private double acc_prob;// accumulated probability (이전 최대 edge와 해당 node의 ep*tp를 곱함)
-    private double exist_tp;
 
     public int getPrev_index() {
         return prev_index;
@@ -38,26 +35,20 @@ public class Candidate {
         this.point = null;
         this.involvedLink = null;
         this.tp= 0.0;
-        this.yh_tp= 0.0;
         this.ep=0.0;
         this.tpep=0.0;
         this.ep_median=0.0;
         this.tp_median=0.0;
-        this.max_tp_median=0.0;
-        this.exist_tp =0.0;
     }
 
     public Candidate (Point point, Link involvedLink){
         this.point = point;
         this.involvedLink = involvedLink;
         this.tp= 0.0;
-        this.yh_tp= 0.0;
         this.ep=0.0;
         this.tpep=0.0;
         this.ep_median=0.0;
         this.tp_median=0.0;
-        this.max_tp_median=0.0;
-        this.exist_tp =0.0;
     }
 
     public void setPoint(Point point){this.point=point;}
@@ -77,21 +68,11 @@ public class Candidate {
         this.tp = tp;
     }
 
-    public void setYh_tp(double tp) {
-        this.tp = tp;
-    }
 
     public void setEp(double ep) {
         this.ep = ep;
     }
 
-    public double getTp() {
-        return tp;
-    }
-
-    public double getYh_tp() {
-        return yh_tp;
-    }
 
     public double getEp() {
         return ep;
@@ -101,7 +82,6 @@ public class Candidate {
         this.tpep=tpep;
     }
 
-    public double getTpep(){return tpep;}
 
     public void setEp_median(double ep_median) {this.ep_median = ep_median;}
 
@@ -115,13 +95,6 @@ public class Candidate {
         return tp_median;
     }
 
-    public double getMax_tp_median() {
-        return max_tp_median;
-    }
-
-    //public double getExist_tp() { return exist_tp; }
-    //public void setExist_tp(double exist_tp) { this.exist_tp = exist_tp; }
-
     @Override
     public String toString() {
         return "point: "+ point + "  involvedLink: " + involvedLink + " tp/ep/tpep: "+tp+"/"+ep+"/"+tpep;//+"\n";
@@ -131,10 +104,9 @@ public class Candidate {
         return point.toString();
     }
 
-    public static ArrayList<Candidate> findRadiusCandidate(ArrayList<GPSPoint> gpsPointArrayList,
-                                                           ArrayList<Candidate> matchingPointArrayList, Point center,
+    public static ArrayList<Candidate> findRadiusCandidate(ArrayList<GPSPoint> gpsPointArrayList, Point center,
                                                            Integer Radius, RoadNetwork roadNetwork, int timestamp,
-                                                           Emission emission, Transition transition) {
+                                                           Emission emission) {
         //System.out.println("GPS (center) : "+ center);
         ArrayList<Candidate> resultCandidate = new ArrayList<>();
         for (int i = 0; i < roadNetwork.linkArrayList.size(); i++) {
