@@ -14,6 +14,9 @@ import com.google.android.gms.location.*
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.*
 import com.naver.maps.map.overlay.Marker
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileWriter
 
 class MainActivity : FragmentActivity(), OnMapReadyCallback {
 
@@ -57,7 +60,7 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
 
     @UiThread
     override fun onMapReady(naverMap: NaverMap){
-        /*
+/*
         val cameraPosition = CameraPosition(
             LatLng(37.5666102, 126.9783881),  // 위치 지정
             16.0 // 줌 레벨
@@ -68,10 +71,12 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(this) //gps 자동으로 받아오기
         setUpdateLocationListner() //내위치를 가져오는 코드
-        */
+*/
+
 
         val dir = filesDir.absolutePath //파일절대경로
-        Mapmatching_engine(naverMap).engine(naverMap, dir)
+        //Mapmatching_engine(naverMap).engine(naverMap, dir)
+        FixedGPS(naverMap).fixengine(naverMap, dir)
         //engine 부분 옮기기
     }
 
@@ -82,6 +87,10 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
 
     @SuppressLint("MissingPermission")
     fun setUpdateLocationListner() {
+        val dir = filesDir.absolutePath //내부저장소 절대 경로
+        val filename = "실제 GPS.txt"
+        writeTextFile(dir, filename, "애플리케이션 시작!\n")
+
         val locationRequest = LocationRequest.create()
         locationRequest.run {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY //높은 정확도
@@ -94,6 +103,8 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
                 for ((i, location) in locationResult.locations.withIndex()) {
                     Log.d("location: ", "${location.latitude}, ${location.longitude}")
                     setLastLocation(location)
+                    val contents = location.latitude.toString() + "\t" + location.longitude.toString() + "\n"
+                    writeTextFile(dir, filename, contents)
                 }
             }
         }
@@ -120,6 +131,23 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
 
         //marker.map = null
     }
+
+    fun writeTextFile(directory:String, filename:String, content:String){
+        val dir = File(directory)
+
+        if(!dir.exists()){ //dir이 존재 하지 않을때
+            dir.mkdirs() //mkdirs : 중간에 directory가 없어도 생성됨
+        }
+
+        val writer = FileWriter(directory + "/" + filename, true)
+        //true는 파일을 이어쓰는 것을 의미
+
+        //쓰기 속도 향상
+        val buffer = BufferedWriter(writer)
+        buffer.write(content)
+        buffer.close()
+    }
+
 
 }
 

@@ -7,15 +7,18 @@ import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.util.MarkerIcons
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileReader
 
-class Mapmatching_engine(naverMap: NaverMap) {
+class FixedGPS(naverMap: NaverMap) {
 
     private lateinit var naverMap: NaverMap
     private val emission: Emission = Emission()
-    private val transition:Transition = Transition()
+    private val transition: Transition = Transition()
     private val wSize = 3 //윈도사이즈는 3!!!!!!
 
-    fun engine(naverMap: NaverMap, dir: String){
+    fun fixengine(naverMap: NaverMap, dir: String) {
 
         System.out.println("===== [YSY] Map-matching real time =====")
 
@@ -61,35 +64,39 @@ class Mapmatching_engine(naverMap: NaverMap) {
         val subGPSs: ArrayList<GPSPoint> = ArrayList()
 
         var timestamp = 0
+        var crossroad_check = 0
 
-        // 1: 원래 하던대로 (표준편차 4)  | 2: x혹은 y좌표만 uniform하게(hor, ver, dia에 따라서)
-        // 3: x, y 모두 uniform하게     | 4: 교수님이 말한 평균 4 방식
-        val gpsGenMode = 2
         println("Fixed Sliding Window Viterbi (window size: 3)")
+/*
+
         for (i in routePointArrayList.indices step (1)) {
             var point: Point = routePointArrayList.get(i)
             //println("routePoint: " + point)
             printPoint(point, Color.YELLOW, naverMap)
         }
+*/
 
-        var crossroad_check = 0
+        //파일객체 생성
+        val file1: File = File(dir + "/gps/GPS1.txt")
+        //입력 스트림 생성
+        val fileReader1 = FileReader(file1)
+        //BufferedReader 클래스 이용하여 파일 읽어오기
+        val bufferedReader1 = BufferedReader(fileReader1)
+        while (bufferedReader1.ready()) {
+            val line = bufferedReader1.readLine()
+            val lineArray = line.split("\t").toTypedArray()
 
-        ////////////////////반복문 - gps 생성////////////////////////////////
-        for (i in routePointArrayList.indices step (1)) {
-            // 오래 걸리는 작업 수행부분
-            var point: Point = routePointArrayList.get(i)
-            val gpsPoint = GPSPoint(
-                timestamp,
-                point,
-                gpsGenMode,
-                3,
-                roadNetwork.getLink(point.linkID).itLooksLike
-            )
-            printPoint(gpsPoint.point, Color.RED, naverMap) // 생성된 GPS출력(빨간색)
-            //println("[MAIN] GPS: $gpsPoint")
+            val coordinate = Point(lineArray[1], lineArray[0]) // 위도(y), 경도(x) 순서로 저장되어있으므로 순서 바꿈!
+
+            val gpsPoint = GPSPoint(timestamp, coordinate)
             gpsPointArrayList.add(gpsPoint)
+            printPoint(gpsPoint.point, Color.RED, naverMap) // 생성된 GPS 출력(빨간색)
+            println("[MAIN] GPS: $gpsPoint") //출력
+            //gps 받아오기
+
             timestamp++ //gps 생성후 바로 증가
 
+            //candidate 찾고 emmission 구하기
             val candidates: ArrayList<Candidate> = ArrayList()
             candidates.addAll(
                 Candidate.findRadiusCandidate(
@@ -98,22 +105,12 @@ class Mapmatching_engine(naverMap: NaverMap) {
                 )
             )
 
-            //candidate출력 주석
-            /*
-            println(">>>> [MAIN] candidates <<<<")
-            for (candidate in candidates) {
-                println("  $candidate")
-            }
-            println(">>>>>>>>>>>>>><<<<<<<<<<<<<")
-             */
-
             ///////////// FSW VITERBI /////////////
             subGPSs.add(gpsPoint)
             arrOfCandidates.add(candidates)
 
             ///////////////////matching 진행하는 부분분//////////////////
             //처음 부분 3번은 제일 가까운 candidate에 매칭 (ep)
-
             if (timestamp <= 3) {
                 // 마지막 candidates 중 prob가 가장 높은 것 max_last_candi에 저장
                 var max_last_candi = Candidate()
@@ -156,9 +153,8 @@ class Mapmatching_engine(naverMap: NaverMap) {
             }
             //처음 3번 구하는 부분 끝, 처음 매칭 3번은 비터비 적용x
 
-
-            if(crossroad_check == 1){
-                if(subGPSs.size == 5){ // 5초후까지 확인
+            if (crossroad_check == 1) {
+                if (subGPSs.size == 5) { // 5초후까지 확인
                     //갈림길 알고리즘 시작
                     Crossroad.future_gps(arrOfCandidates, subMatching)
                     crossroad_check = 0
@@ -171,8 +167,7 @@ class Mapmatching_engine(naverMap: NaverMap) {
                     arrOfCandidates.add(candidates)
                     //마지막 gps, candidate 추가
                 }
-            }
-            else {
+            } else {
                 if (subGPSs.size == wSize) {
                     //println("===== VITERBI start ====")
 
@@ -196,31 +191,56 @@ class Mapmatching_engine(naverMap: NaverMap) {
 
                     //갈림길이 있는지 판단
                     //비터비 사이즈 3일때만 가능
+
                     var m_size = FSWViterbi.getMatched_sjtp().size
                     //
-                    if (Crossroad.different_Link(roadNetwork, FSWViterbi.getMatched_sjtp()[m_size - 2], FSWViterbi.getMatched_sjtp()[m_size - 3]) == 1) {
+                    if (Crossroad.different_Link(
+                            roadNetwork,
+                            FSWViterbi.getMatched_sjtp()[m_size - 2],
+                            FSWViterbi.getMatched_sjtp()[m_size - 3]
+                        ) == 1
+                    ) {
                         subMatching.clear() //sub 삭제
-                        Crossroad.different_link_matching(roadNetwork, FSWViterbi.getMatched_sjtp()[m_size - 2], FSWViterbi.getMatched_sjtp()[m_size - 3], subMatching)
+                        Crossroad.different_link_matching(
+                            roadNetwork,
+                            FSWViterbi.getMatched_sjtp()[m_size - 2],
+                            FSWViterbi.getMatched_sjtp()[m_size - 3],
+                            subMatching
+                        )
                         //갈림길 가운데 노드로 매칭
-                        FSWViterbi.getMatched_sjtp().removeAt(FSWViterbi.getMatched_sjtp().size - 3) //다른 링크로 매칭 x
-                        FSWViterbi.getMatched_sjtp().removeAt(FSWViterbi.getMatched_sjtp().size - 2) //다른 링크로 매칭 x
+                        FSWViterbi.getMatched_sjtp()
+                            .removeAt(FSWViterbi.getMatched_sjtp().size - 3) //다른 링크로 매칭 x
+                        FSWViterbi.getMatched_sjtp()
+                            .removeAt(FSWViterbi.getMatched_sjtp().size - 2) //다른 링크로 매칭 x
                         crossroad_check = 1;
                     }
                     //
-                    else if (Crossroad.different_Link(roadNetwork, FSWViterbi.getMatched_sjtp()[m_size - 1], FSWViterbi.getMatched_sjtp()[m_size - 2]) == 1) {
+                    else if (Crossroad.different_Link(
+                            roadNetwork,
+                            FSWViterbi.getMatched_sjtp()[m_size - 1],
+                            FSWViterbi.getMatched_sjtp()[m_size - 2]
+                        ) == 1
+                    ) {
                         subMatching.removeAt(subMatching.size - 1)
-                        Crossroad.different_link_matching(roadNetwork, FSWViterbi.getMatched_sjtp()[m_size - 1], FSWViterbi.getMatched_sjtp()[m_size - 2], subMatching) //갈림길 가운데 노드로 매칭
-                        FSWViterbi.getMatched_sjtp().removeAt(FSWViterbi.getMatched_sjtp().size - 2) //다른 링크로 매칭 x
+                        Crossroad.different_link_matching(
+                            roadNetwork,
+                            FSWViterbi.getMatched_sjtp()[m_size - 1],
+                            FSWViterbi.getMatched_sjtp()[m_size - 2],
+                            subMatching
+                        ) //갈림길 가운데 노드로 매칭
+                        FSWViterbi.getMatched_sjtp()
+                            .removeAt(FSWViterbi.getMatched_sjtp().size - 2) //다른 링크로 매칭 x
                         crossroad_check = 1;
                     }
 
                     printMatched(subMatching, Color.GREEN, 50, naverMap) // 세정 매칭: 초록색
                     subMatching.clear()
+
+
                 }
             }
             //비터비 끝//
         }
-        //printMatched(FSWViterbi.getMatched_sjtp(), Color.GREEN, 50, naverMap) // 세정 매칭: 초록색
 
     }
 
