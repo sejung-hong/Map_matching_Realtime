@@ -77,7 +77,7 @@ class FixedGPS(naverMap: NaverMap) {
 */
 
         //파일객체 생성
-        val file1: File = File(dir + "/gps/GPS1.txt")
+        val file1: File = File(dir + "/Real_GPS/real_route1_2.txt")
         //입력 스트림 생성
         val fileReader1 = FileReader(file1)
         //BufferedReader 클래스 이용하여 파일 읽어오기
@@ -109,6 +109,7 @@ class FixedGPS(naverMap: NaverMap) {
             subGPSs.add(gpsPoint)
             arrOfCandidates.add(candidates)
 
+            
             ///////////////////matching 진행하는 부분분//////////////////
             //처음 부분 3번은 제일 가까운 candidate에 매칭 (ep)
             if (timestamp <= 3) {
@@ -153,6 +154,7 @@ class FixedGPS(naverMap: NaverMap) {
             }
             //처음 3번 구하는 부분 끝, 처음 매칭 3번은 비터비 적용x
 
+
             if (crossroad_check == 1) {
                 if (subGPSs.size == 5) { // 5초후까지 확인
                     //갈림길 알고리즘 시작
@@ -168,6 +170,7 @@ class FixedGPS(naverMap: NaverMap) {
                     //마지막 gps, candidate 추가
                 }
             } else {
+
                 if (subGPSs.size == wSize) {
                     //println("===== VITERBI start ====")
 
@@ -191,6 +194,7 @@ class FixedGPS(naverMap: NaverMap) {
 
                     //갈림길이 있는지 판단
                     //비터비 사이즈 3일때만 가능
+
 
                     var m_size = FSWViterbi.getMatched_sjtp().size
                     //
@@ -240,6 +244,9 @@ class FixedGPS(naverMap: NaverMap) {
                 }
             }
             //비터비 끝//
+
+
+
         }
 
     }

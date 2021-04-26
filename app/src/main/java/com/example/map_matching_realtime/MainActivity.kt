@@ -60,6 +60,7 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
 
     @UiThread
     override fun onMapReady(naverMap: NaverMap){
+
 /*
         val cameraPosition = CameraPosition(
             LatLng(37.5666102, 126.9783881),  // 위치 지정
@@ -71,8 +72,9 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(this) //gps 자동으로 받아오기
         setUpdateLocationListner() //내위치를 가져오는 코드
-*/
 
+        naverMap.isDestroyed()
+*/
 
         val dir = filesDir.absolutePath //파일절대경로
         //Mapmatching_engine(naverMap).engine(naverMap, dir)

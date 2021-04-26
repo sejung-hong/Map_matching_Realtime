@@ -45,6 +45,58 @@ public class Crossroad {
     //적어놓은 방식
     public static void future_gps(ArrayList<ArrayList<Candidate>> arrOfCandidates, ArrayList<Candidate> subMatching) {
 
+        ArrayList<ArrayList<Candidate>> link_list = new ArrayList<>();
+        Link link;
+
+        int size = arrOfCandidates.size(); //사이즈 저장
+        ArrayList<Candidate> last_candidates = arrOfCandidates.get(size - 1);
+
+        for (Candidate c : last_candidates) {
+            ArrayList<Candidate> add_list = new ArrayList<>();
+            add_list.add(c);
+            link_list.add(add_list);
+        }//마지막 gps(n초 후 gps)의 candidates를 Arraylist로 만들어 저장
+
+        for (int j = 0; j < size - 1; j++) {
+            ArrayList<Candidate> candidates = arrOfCandidates.get(j);
+            for (Candidate c : candidates) {
+                for (int i = 0; i < link_list.size(); i++) {
+                    if (c.getInvolvedLink() == link_list.get(i).get(0).getInvolvedLink()) { //link_list.get(i).get(0).getInvolvedLink(): 마지막 gps link의 후보들
+                        link_list.get(i).add(c); //ep list에 추가
+                        break;
+                    }
+                }
+            }
+        }//arrOfCandidates의 link가 후보에 존재한다면 ep 저장
+
+        double max_aver = 0;
+        Link max_link = null;
+        for (int i = 0; i < link_list.size(); i++) {
+            double aver = 0;
+            for (int j = 0; j < link_list.get(i).size(); j++) {
+                aver += link_list.get(i).get(j).getEp(); //ep 더해줌
+            }
+            aver = aver / link_list.get(i).size(); //평균구하기
+            if (max_aver < aver) {
+                max_aver = aver;
+                max_link = link_list.get(i).get(0).getInvolvedLink(); //링크 구하기
+            } //가장 높은 평균 구하기
+        }//ep의 평균을 구해서 확률이 가장 높은 것을 선택
+
+        for(ArrayList<Candidate> list_candidate : link_list){
+            if(max_link == list_candidate.get(0).getInvolvedLink()){ //가장 평균 높은 link 찾음
+                FSWViterbi.getMatched_sjtp().get(FSWViterbi.getMatched_sjtp().size()-1).setInvolvedLink(max_link);
+                // 중간 Node를 매칭될 링크와 같다고 판단
+                for(Candidate c: list_candidate){
+                    Emission.Emission_Median(c); //median값 저장
+                    FSWViterbi.setMatched_sjtp(c);
+                    subMatching.add(c);
+                }
+            }
+        }//확률이 가장 높은 Link의 candidate를 매칭, 중간 link도 모두 저장
+
+    }
+/*
         ArrayList<Pair<Link, ArrayList<Double>>> link_list = new ArrayList<>();
         Link link;
 
@@ -97,7 +149,8 @@ public class Crossroad {
             }
         }//확률이 가장 높은 Link의 candidate를 매칭
 
-    }
+    }*/
+
 
 
 }
