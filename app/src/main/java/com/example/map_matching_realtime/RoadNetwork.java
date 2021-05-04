@@ -84,6 +84,7 @@ public class RoadNetwork {
 
         if(testNo == 1){
             int[] routeNodes = { 0, 10, 7, 9, 6, 5, 4, 3, 2, 1};
+            //int[] routeNodes = { 3,4,5,6,9,15,14,27,28,70,38 };
             for (int i=0; i<routeNodes.length-1; i++) {
                 Link routelink = getLink(routeNodes[i], routeNodes[i+1]); //두 노드를 끝으로 하는 링크 반환
                 routePoints.addAll(getInvolvingPointList(getNode(routeNodes[i]).getCoordinate(),

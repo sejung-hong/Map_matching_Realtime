@@ -51,6 +51,9 @@ class FixedGPS(naverMap: NaverMap) {
         //신기한 사실 = get,set 함수를 불러오지 않아도 알아서 척척박사님 알아맞춰보세요
         //여기까지 도로네트워크 생성
 
+        //getNodePrint(roadNetwork, naverMap) //노드 출력
+
+
         // GPS points와 routePoints를 저장할 ArrayList생성
         val gpsPointArrayList: ArrayList<GPSPoint> = ArrayList()
         val routePointArrayList: ArrayList<Point> // 실제 경로의 points!
@@ -67,17 +70,16 @@ class FixedGPS(naverMap: NaverMap) {
         var crossroad_check = 0
 
         println("Fixed Sliding Window Viterbi (window size: 3)")
-/*
 
         for (i in routePointArrayList.indices step (1)) {
             var point: Point = routePointArrayList.get(i)
             //println("routePoint: " + point)
             printPoint(point, Color.YELLOW, naverMap)
         }
-*/
+
 
         //파일객체 생성
-        val file1: File = File(dir + "/Real_GPS/real_route1_2.txt")
+        val file1: File = File(dir + "/gps/route1_2.txt")
         //입력 스트림 생성
         val fileReader1 = FileReader(file1)
         //BufferedReader 클래스 이용하여 파일 읽어오기
@@ -86,7 +88,7 @@ class FixedGPS(naverMap: NaverMap) {
             val line = bufferedReader1.readLine()
             val lineArray = line.split("\t").toTypedArray()
 
-            val coordinate = Point(lineArray[1], lineArray[0]) // 위도(y), 경도(x) 순서로 저장되어있으므로 순서 바꿈!
+            val coordinate = Point(lineArray[0], lineArray[1]) // 위도(y), 경도(x) 순서로 저장되어있으므로 순서 바꿈!
 
             val gpsPoint = GPSPoint(timestamp, coordinate)
             gpsPointArrayList.add(gpsPoint)
@@ -195,7 +197,6 @@ class FixedGPS(naverMap: NaverMap) {
                     //갈림길이 있는지 판단
                     //비터비 사이즈 3일때만 가능
 
-
                     var m_size = FSWViterbi.getMatched_sjtp().size
                     //
                     if (Crossroad.different_Link(
@@ -237,6 +238,7 @@ class FixedGPS(naverMap: NaverMap) {
                         crossroad_check = 1;
                     }
 
+
                     printMatched(subMatching, Color.GREEN, 50, naverMap) // 세정 매칭: 초록색
                     subMatching.clear()
 
@@ -245,9 +247,8 @@ class FixedGPS(naverMap: NaverMap) {
             }
             //비터비 끝//
 
-
-
         }
+
 
     }
 
@@ -298,6 +299,32 @@ class FixedGPS(naverMap: NaverMap) {
         naverMap.moveCamera(cameraUpdate)
 
         //카메라 이동
+    }
+
+    //Node(좌표)를 지도위에 출력하는 함수
+    fun getNodePrint(roadNetwork: RoadNetwork, naverMap: NaverMap) {
+        for (i in roadNetwork.nodeArrayList.indices) { //indices 또는 index사용
+            val marker = Marker() //좌표
+            marker.position = LatLng(
+                roadNetwork.getNode(i).coordinate.y,
+                roadNetwork.getNode(i).coordinate.x
+            ) //node 좌표 출력
+            marker.icon = MarkerIcons.BLACK //색을 선명하게 하기 위해 해줌
+            marker.iconTintColor = Color.BLUE //색 덧입히기
+            marker.width = 30
+            marker.height = 50
+            // 마커가 너무 커서 크기 지정해줌
+            marker.map = naverMap //navermap에 출력
+        } //모든 노드 출력
+
+        val cameraUpdate = CameraUpdate.scrollTo(
+            LatLng(
+                roadNetwork.getNode(0).coordinate.x, roadNetwork.getNode(0).coordinate.y
+            )
+        )
+        naverMap.moveCamera(cameraUpdate)
+        //카메라 이동
+
     }
 
 }

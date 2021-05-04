@@ -61,7 +61,6 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
     @UiThread
     override fun onMapReady(naverMap: NaverMap){
 
-/*
         val cameraPosition = CameraPosition(
             LatLng(37.5666102, 126.9783881),  // 위치 지정
             16.0 // 줌 레벨
@@ -74,11 +73,12 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
         setUpdateLocationListner() //내위치를 가져오는 코드
 
         naverMap.isDestroyed()
-*/
+
 
         val dir = filesDir.absolutePath //파일절대경로
         //Mapmatching_engine(naverMap).engine(naverMap, dir)
-        FixedGPS(naverMap).fixengine(naverMap, dir)
+        //FixedGPS(naverMap).fixengine(naverMap, dir)
+        //Adjacent_List(naverMap).Adjacent_List(naverMap,dir)
         //engine 부분 옮기기
     }
 
@@ -91,7 +91,9 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
     fun setUpdateLocationListner() {
         val dir = filesDir.absolutePath //내부저장소 절대 경로
         val filename = "실제 GPS.txt"
-        writeTextFile(dir, filename, "애플리케이션 시작!\n")
+        //writeTextFile(dir, filename, "애플리케이션 시작!\n")
+
+        var roadNetwork = Adjacent_List(naverMap).Adjacent_List(naverMap,dir)
 
         val locationRequest = LocationRequest.create()
         locationRequest.run {
@@ -104,9 +106,9 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
                 locationResult ?: return
                 for ((i, location) in locationResult.locations.withIndex()) {
                     Log.d("location: ", "${location.latitude}, ${location.longitude}")
-                    setLastLocation(location)
+                    setLastLocation(location, roadNetwork)
                     val contents = location.latitude.toString() + "\t" + location.longitude.toString() + "\n"
-                    writeTextFile(dir, filename, contents)
+                    //writeTextFile(dir, filename, contents)
                 }
             }
         }
@@ -119,7 +121,10 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback {
         )
     }//좌표계를 주기적으로 갱신
 
-    fun setLastLocation(location: Location) {
+    fun setLastLocation(location: Location, roadNetwork: RoadNetwork?) {
+        if (roadNetwork != null) {
+            Realtime_engine().Real_engine(naverMap, location, roadNetwork)
+        }
         val myLocation = LatLng(location.latitude, location.longitude)
         val marker = Marker()
         marker.position = myLocation

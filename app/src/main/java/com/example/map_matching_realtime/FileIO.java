@@ -57,7 +57,6 @@ public class FileIO {
         FileReader fileReader1 = new FileReader(file1);
         //BufferedReader 클래스 이용하여 파일 읽어오기
 
-
         BufferedReader bufferedReader1 = new BufferedReader(fileReader1);
         //System.out.println("======== Node 정보 =======");
         while (bufferedReader1.ready()) {

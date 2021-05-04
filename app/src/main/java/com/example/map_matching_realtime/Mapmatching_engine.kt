@@ -48,6 +48,8 @@ class Mapmatching_engine(naverMap: NaverMap) {
         //신기한 사실 = get,set 함수를 불러오지 않아도 알아서 척척박사님 알아맞춰보세요
         //여기까지 도로네트워크 생성
 
+        getNodePrint(roadNetwork, naverMap)
+
         // GPS points와 routePoints를 저장할 ArrayList생성
         val gpsPointArrayList: ArrayList<GPSPoint> = ArrayList()
         val routePointArrayList: ArrayList<Point> // 실제 경로의 points!
@@ -66,7 +68,7 @@ class Mapmatching_engine(naverMap: NaverMap) {
         // 3: x, y 모두 uniform하게     | 4: 교수님이 말한 평균 4 방식
         val gpsGenMode = 2
         println("Fixed Sliding Window Viterbi (window size: 3)")
-        for (i in routePointArrayList.indices step (1)) {
+        for (i in routePointArrayList.indices step (5)) {
             var point: Point = routePointArrayList.get(i)
             //println("routePoint: " + point)
             printPoint(point, Color.YELLOW, naverMap)
@@ -75,7 +77,7 @@ class Mapmatching_engine(naverMap: NaverMap) {
         var crossroad_check = 0
 
         ////////////////////반복문 - gps 생성////////////////////////////////
-        for (i in routePointArrayList.indices step (1)) {
+        for (i in routePointArrayList.indices step (5)) {
             // 오래 걸리는 작업 수행부분
             var point: Point = routePointArrayList.get(i)
             val gpsPoint = GPSPoint(
@@ -98,14 +100,14 @@ class Mapmatching_engine(naverMap: NaverMap) {
                 )
             )
 
-            //candidate출력 주석
-            /*
+/*//candidate출력 주석
             println(">>>> [MAIN] candidates <<<<")
             for (candidate in candidates) {
                 println("  $candidate")
             }
             println(">>>>>>>>>>>>>><<<<<<<<<<<<<")
              */
+
 
             ///////////// FSW VITERBI /////////////
             subGPSs.add(gpsPoint)
@@ -222,6 +224,7 @@ class Mapmatching_engine(naverMap: NaverMap) {
         }
         //printMatched(FSWViterbi.getMatched_sjtp(), Color.GREEN, 50, naverMap) // 세정 매칭: 초록색
 
+
     }
 
     //point 출력하는 함수
@@ -272,5 +275,32 @@ class Mapmatching_engine(naverMap: NaverMap) {
 
         //카메라 이동
     }
+
+    fun getNodePrint(roadNetwork: RoadNetwork, naverMap: NaverMap) {
+        for (i in roadNetwork.nodeArrayList.indices) { //indices 또는 index사용
+            val marker = Marker() //좌표
+            marker.position = LatLng(
+                roadNetwork.getNode(i).coordinate.y,
+                roadNetwork.getNode(i).coordinate.x
+            ) //node 좌표 출력
+            marker.icon = MarkerIcons.BLACK //색을 선명하게 하기 위해 해줌
+            marker.iconTintColor = Color.BLUE //색 덧입히기
+            marker.width = 30
+            marker.height = 50
+            // 마커가 너무 커서 크기 지정해줌
+            marker.map = naverMap //navermap에 출력
+        } //모든 노드 출력
+
+        var cameraUpdate = CameraUpdate.scrollTo(
+            LatLng(
+                roadNetwork.getNode(0).coordinate.x, roadNetwork.getNode(
+                    0
+                ).coordinate.y
+            )
+        )
+        naverMap.moveCamera(cameraUpdate)
+        //카메라 이동
+    }
+
 
 }
